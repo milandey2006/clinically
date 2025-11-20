@@ -83,7 +83,7 @@ function AddPatientForm() {
         <CardHeader>
           <CardTitle>Patient Information</CardTitle>
           <CardDescription>
-            Enter the patient's personal details below. Use the microphone icon to speak instead of typing.
+            Enter the patient&apos;s personal details below. Use the microphone icon to speak instead of typing.
           </CardDescription>
         </CardHeader>
         <CardContent>

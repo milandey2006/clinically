@@ -91,7 +91,7 @@ export default async function Home() {
               <Share2 className="w-6 h-6 text-green-400" />
             </div>
             <h3 className="text-xl font-bold mb-3">WhatsApp Integration</h3>
-            <p className="text-gray-400">Send prescriptions directly to your patient's WhatsApp with a single click. No printing needed.</p>
+            <p className="text-gray-400">Send prescriptions directly to your patient&apsos;s WhatsApp with a single click. No printing needed.</p>
           </div>
 
           <div className="glass-card p-8 rounded-2xl hover:bg-white/5 transition-all group">

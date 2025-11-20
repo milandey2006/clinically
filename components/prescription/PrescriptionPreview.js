@@ -276,7 +276,7 @@ ${doctorProfile?.name || "Doctor"}`;
                     <img src={doctorProfile.signatureUrl} alt="Signature" style={{ height: '100%', maxWidth: '150px' }} />
                   )}
                 </div>
-                <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', borderTop: '1px solid #e5e7eb', paddingTop: '8px', paddingLeft: '24px', paddingRight: '24px' }}>Doctor's Signature</p>
+                <p style={{ fontSize: '14px', fontWeight: '600', color: '#111827', borderTop: '1px solid #e5e7eb', paddingTop: '8px', paddingLeft: '24px', paddingRight: '24px' }}>Doctor&apsos;s Signature</p>
               </div>
             </div>
           </div>

@@ -18,7 +18,7 @@ export default async function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Welcome back, {doctorName}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Here's a summary of your activity for today.</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Here&apsos;s a summary of your activity for today.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/create-prescription">
