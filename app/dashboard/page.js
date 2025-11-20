@@ -1,39 +1,74 @@
-"use client";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { PrescriptionRequestsTable } from "@/components/dashboard/PrescriptionRequestsTable";
+import { UpcomingAppointments } from "@/components/dashboard/UpcomingAppointments";
 import Link from "next/link";
 
-export default function Dashboard() {
-  const [patients, setPatients] = useState([]);
+import { getDoctorProfile } from "@/app/actions";
+import { currentUser } from "@clerk/nextjs/server";
 
-  useEffect(() => {
-    fetch("/api/patients")
-      .then(r => r.json())
-      .then(setPatients);
-  }, []);
+export default async function Dashboard() {
+  const user = await currentUser();
+  const profile = await getDoctorProfile();
+  const doctorName = profile?.name || user?.fullName || "Doctor";
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <div className="mb-4">
-        <Link href="/dashboard/add-patient" className="bg-blue-600 text-white px-4 py-2 rounded">+ Add Patient</Link>
-        <Link href="/dashboard/prescription/new" className="ml-3 bg-green-600 text-white px-4 py-2 rounded">+ New Prescription</Link>
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Welcome back, {doctorName}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Here's a summary of your activity for today.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/create-prescription">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm h-10 px-5">
+              Create New Prescription
+            </Button>
+          </Link>
+          <Button variant="outline" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm h-10 px-5">
+            Add New Patient
+          </Button>
+        </div>
       </div>
 
-      <h2 className="font-semibold mb-2">Patients ({patients.length})</h2>
-      <ul className="space-y-2">
-        {patients.map(p => (
-          <li key={p.id} className="p-3 border rounded flex justify-between">
-            <div>
-              <div className="font-medium">{p.name} — {p.age} yrs</div>
-              <div className="text-sm text-gray-600">{p.contact}</div>
-            </div>
-            <div className="flex gap-2">
-              <Link href={`/dashboard/prescriptions/${p.id}`} className="text-sm px-3 py-1 border rounded">History</Link>
-              <Link href={`/dashboard/prescription/new?patientId=${p.id}`} className="bg-indigo-600 text-white px-3 py-1 rounded">Prescribe</Link>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Total Prescriptions (Month)" 
+          value="124" 
+          change={5.2} 
+          trend="up" 
+        />
+        <StatCard 
+          title="Pending Requests" 
+          value="8" 
+          change={2.1} 
+          trend="up" 
+        />
+        <StatCard 
+          title="Today's Appointments" 
+          value="15" 
+          change={-1.5} 
+          trend="down" 
+        />
+        <StatCard 
+          title="New Messages" 
+          value="3" 
+          change={1.8} 
+          trend="up" 
+        />
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <PrescriptionRequestsTable />
+        </div>
+        <div>
+          <UpcomingAppointments />
+        </div>
+      </div>
     </div>
   );
 }

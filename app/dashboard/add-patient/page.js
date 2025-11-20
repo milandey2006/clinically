@@ -1,80 +1,164 @@
 "use client";
-import { useState } from "react";
 
-export default function AddPatientPage() {
-  const [form, setForm] = useState({
+import { useState, useEffect, Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { addPatient, updatePatient, getPatients } from "@/app/actions";
+import { useRouter, useSearchParams } from "next/navigation";
+import { VoiceInput } from "@/components/ui/voice-input";
+
+function AddPatientForm() {
+  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [initialData, setInitialData] = useState(null);
+  const [formData, setFormData] = useState({
     name: "",
-    age: "",
-    gender: "",
     contact: "",
+    age: "",
+    gender: ""
   });
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch("/api/patients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    if (res.ok) {
-      alert("✅ Patient added successfully!");
-      setForm({ name: "", age: "", gender: "", contact: "" });
-    } else {
-      alert("❌ Error adding patient!");
+  useEffect(() => {
+    if (editId) {
+      setIsEditing(true);
+      const fetchPatient = async () => {
+        const patients = await getPatients();
+        const patient = patients.find(p => p.id === parseInt(editId));
+        if (patient) {
+          setInitialData(patient);
+          setFormData({
+            name: patient.name || "",
+            contact: patient.contact || "",
+            age: patient.age?.toString() || "",
+            gender: patient.gender || ""
+          });
+        }
+      };
+      fetchPatient();
     }
+  }, [editId]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setLoading(true);
+    const submitFormData = new FormData();
+    submitFormData.append("name", formData.name);
+    submitFormData.append("contact", formData.contact);
+    submitFormData.append("age", formData.age);
+    submitFormData.append("gender", formData.gender);
+    
+    let result;
+    if (isEditing) {
+      result = await updatePatient(parseInt(editId), submitFormData);
+    } else {
+      result = await addPatient(submitFormData);
+    }
+    
+    setLoading(false);
+    
+    if (result.success) {
+      alert(isEditing ? "Patient updated successfully!" : "Patient added successfully!");
+      router.push("/dashboard/patients");
+    } else {
+      alert("Failed to save patient: " + result.message);
+    }
+  }
+
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl p-6 shadow-lg mt-10">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800">Add New Patient</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Patient Name"
-          value={form.name}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-          required
-        />
-        <input
-          type="number"
-          name="age"
-          placeholder="Age"
-          value={form.age}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-          required
-        />
-        <select
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-        >
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        <input
-          type="text"
-          name="contact"
-          placeholder="Contact Number"
-          value={form.contact}
-          onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white rounded-lg p-2 font-medium hover:bg-blue-700 transition"
-        >
-          Save
-        </button>
-      </form>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{isEditing ? "Edit Patient" : "Add New Patient"}</h1>
+        <p className="text-muted-foreground">{isEditing ? "Update patient details." : "Register a new patient to the system."}</p>
+      </div>
+
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>Patient Information</CardTitle>
+          <CardDescription>
+            Enter the patient's personal details below. Use the microphone icon to speak instead of typing.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">Full Name</label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="name" 
+                    placeholder="John Doe" 
+                    required 
+                    value={formData.name}
+                    onChange={(e) => handleFieldChange("name", e.target.value)}
+                  />
+                  <VoiceInput onTranscript={(text) => handleFieldChange("name", text)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="contact" className="text-sm font-medium">Contact Number</label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="contact" 
+                    placeholder="+1 234 567 890" 
+                    value={formData.contact}
+                    onChange={(e) => handleFieldChange("contact", e.target.value)}
+                  />
+                  <VoiceInput onTranscript={(text) => handleFieldChange("contact", text)} />
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="age" className="text-sm font-medium">Age</label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="age" 
+                    type="number" 
+                    placeholder="32" 
+                    value={formData.age}
+                    onChange={(e) => handleFieldChange("age", e.target.value)}
+                  />
+                  <VoiceInput onTranscript={(text) => handleFieldChange("age", text)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="gender" className="text-sm font-medium">Gender</label>
+                <div className="flex gap-2">
+                  <Input 
+                    id="gender" 
+                    placeholder="Male/Female/Other" 
+                    value={formData.gender}
+                    onChange={(e) => handleFieldChange("gender", e.target.value)}
+                  />
+                  <VoiceInput onTranscript={(text) => handleFieldChange("gender", text)} />
+                </div>
+              </div>
+            </div>
+            
+            <div className="pt-4 flex justify-end">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : (isEditing ? "Update Patient" : "Save Patient")}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+export default function AddPatientPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AddPatientForm />
+    </Suspense>
   );
 }
