@@ -32,11 +32,11 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
 
     try {
       console.log("Starting PDF generation...");
-      
+
       // Clone the element to ensure it's visible for capture
       const originalElement = prescriptionRef.current;
       const clone = originalElement.cloneNode(true);
-      
+
       // Style the clone to be visible but off-screen
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
@@ -44,9 +44,9 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
       clone.style.width = '800px';
       clone.style.display = 'block';
       clone.style.zIndex = '-1';
-      
+
       document.body.appendChild(clone);
-      
+
       // Wait a bit for the clone to render
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -57,15 +57,15 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         backgroundColor: "#ffffff",
         windowWidth: 800,
       });
-      
+
       document.body.removeChild(clone);
-      
+
       const imgData = canvas.toDataURL("image/jpeg", 1.0);
-      
+
       if (imgData.length < 100) {
         throw new Error("Image data is too short, likely empty or tainted canvas.");
       }
-      
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -74,7 +74,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
 
       const imgWidth = 210;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
+
       pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
       return pdf;
     } catch (error) {
@@ -106,7 +106,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         alert("Failed to generate PDF for sharing.");
         return;
       }
-      
+
       const pdfBlob = pdf.output('blob');
       // Sanitize filename: replace spaces with underscores to ensure valid URLs
       const safeName = (patient.name || "Patient").replace(/[^a-zA-Z0-9]/g, '_');
@@ -115,13 +115,13 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
       // 2. Upload to Cloudinary
       // Dynamically import to avoid server-side issues if any, though this is a client component
       const { uploadPDFToCloudinary } = await import("@/lib/cloudinary-upload");
-      
+
       // Show loading state (optional: could add a toast here)
       const uploadButton = document.getElementById('whatsapp-btn');
       if (uploadButton) uploadButton.innerText = "Uploading...";
 
       const uploadResult = await uploadPDFToCloudinary(pdfBlob, fileName);
-      
+
       if (uploadButton) uploadButton.innerText = "Send WhatsApp";
 
       if (!uploadResult.success) {
@@ -134,7 +134,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
       const cleanNumber = patientContact.replace(/\D/g, '');
       const fileUrl = uploadResult.url;
       console.log("Cloudinary URL:", fileUrl); // Debugging log
-      
+
       const message = `Hello ${patient.name || "Patient"},
 
 Your prescription from ${doctorProfile?.clinicName || "our clinic"} is ready.
@@ -149,13 +149,13 @@ ${fileUrl}
 
 Best regards,
 ${doctorProfile?.name || "Doctor"}`;
-      
+
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
-      
+
       // 4. Open WhatsApp
       window.open(whatsappUrl, '_blank');
-      
+
     } catch (error) {
       console.error("Error sending to WhatsApp:", error);
       alert("Failed to process request. Please try again.");
@@ -185,8 +185,8 @@ ${doctorProfile?.name || "Doctor"}`;
           )}
         </CardHeader>
         <CardContent className="p-8 bg-white min-h-[600px]">
-          <div 
-            ref={prescriptionRef} 
+          <div
+            ref={prescriptionRef}
             className="w-full bg-white p-8"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
@@ -246,7 +246,7 @@ ${doctorProfile?.name || "Doctor"}`;
                 <tbody>
                   {medicines.map((med, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '12px 8px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{med.name || "—"}</td>
+                      <td style={{ padding: '12px 8px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{med.alias || med.name || "—"}</td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.dosage || "—"}</td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.frequency || "—"}</td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.duration || "—"}</td>

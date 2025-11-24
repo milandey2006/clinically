@@ -28,7 +28,7 @@ import { PrescriptionPreview } from "@/components/prescription/PrescriptionPrevi
 export const PrescriptionForm = () => {
   const [patient, setPatient] = useState({ id: null, name: "", age: "", gender: "", date: new Date().toISOString().split('T')[0] });
   const [diagnosis, setDiagnosis] = useState("");
-  const [medicines, setMedicines] = useState([{ name: "", dosage: "", frequency: "", duration: "" }]);
+  const [medicines, setMedicines] = useState([{ name: "", alias: "", dosage: "", frequency: "", duration: "" }]);
   const [advice, setAdvice] = useState("");
   const [severity, setSeverity] = useState("moderate");
   const [visitType, setVisitType] = useState("first");
@@ -43,7 +43,7 @@ export const PrescriptionForm = () => {
 
   useEffect(() => {
     setCurrentDate(new Date().toLocaleString());
-    
+
     // Fetch patients
     const fetchPatients = async () => {
       const data = await getPatients();
@@ -55,7 +55,7 @@ export const PrescriptionForm = () => {
   const handlePatientSelect = (currentValue) => {
     setValue(currentValue === value ? "" : currentValue);
     setOpen(false);
-    
+
     const selectedPatient = patientsList.find((p) => p.name.toLowerCase() === currentValue.toLowerCase());
     if (selectedPatient) {
       setPatient({
@@ -69,7 +69,7 @@ export const PrescriptionForm = () => {
   };
 
   const addMedicine = () => {
-    setMedicines([...medicines, { name: "", dosage: "", frequency: "", duration: "" }]);
+    setMedicines([...medicines, { name: "", alias: "", dosage: "", frequency: "", duration: "" }]);
   };
 
   const removeMedicine = (index) => {
@@ -189,38 +189,38 @@ export const PrescriptionForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Full Name</label>
-                <Input 
-                  placeholder="John Doe" 
+                <Input
+                  placeholder="John Doe"
                   value={patient.name}
-                  onChange={(e) => setPatient({...patient, name: e.target.value})}
+                  onChange={(e) => setPatient({ ...patient, name: e.target.value })}
                   disabled={!!patient.id} // Disable manual edit if selected from DB
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <Input 
-                  type="date" 
+                <Input
+                  type="date"
                   value={patient.date}
-                  onChange={(e) => setPatient({...patient, date: e.target.value})}
+                  onChange={(e) => setPatient({ ...patient, date: e.target.value })}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Age</label>
-                <Input 
-                  placeholder="e.g. 32" 
+                <Input
+                  placeholder="e.g. 32"
                   value={patient.age}
-                  onChange={(e) => setPatient({...patient, age: e.target.value})}
+                  onChange={(e) => setPatient({ ...patient, age: e.target.value })}
                   disabled={!!patient.id}
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Gender</label>
-                <Input 
-                  placeholder="e.g. Male" 
+                <Input
+                  placeholder="e.g. Male"
                   value={patient.gender}
-                  onChange={(e) => setPatient({...patient, gender: e.target.value})}
+                  onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
                   disabled={!!patient.id}
                 />
               </div>
@@ -236,8 +236,8 @@ export const PrescriptionForm = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Diagnosis</label>
               <div className="flex gap-2">
-                <Input 
-                  placeholder="e.g. Viral Fever" 
+                <Input
+                  placeholder="e.g. Viral Fever"
                   value={diagnosis}
                   onChange={(e) => setDiagnosis(e.target.value)}
                 />
@@ -252,49 +252,57 @@ export const PrescriptionForm = () => {
                   <Plus className="h-4 w-4 mr-2" /> Add Medicine
                 </Button>
               </div>
-              
+
               {medicines.map((medicine, index) => (
-                <div key={index} className="grid grid-cols-12 gap-2 items-end bg-gray-50 p-3 rounded-lg">
-                  <div className="col-span-4 space-y-1">
-                    <label className="text-xs text-gray-500">Name</label>
+                <div key={index} className="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                  <div className="col-span-3 space-y-1">
+                    <label className="text-xs text-gray-500 dark:text-gray-400">Name</label>
                     <div className="flex gap-1">
-                      <Input 
-                        placeholder="Medicine Name" 
+                      <Input
+                        placeholder="Medicine Name"
                         value={medicine.name}
                         onChange={(e) => updateMedicine(index, "name", e.target.value)}
                       />
-                      <VoiceInput 
+                      <VoiceInput
                         className="h-8 w-8"
-                        onTranscript={(text) => updateMedicine(index, "name", text)} 
+                        onTranscript={(text) => updateMedicine(index, "name", text)}
                       />
                     </div>
                   </div>
                   <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500">Dosage</label>
-                    <Input 
-                      placeholder="500mg" 
+                    <label className="text-xs text-gray-500 dark:text-gray-400">Alias (Optional)</label>
+                    <Input
+                      placeholder="e.g. Fever Pill"
+                      value={medicine.alias}
+                      onChange={(e) => updateMedicine(index, "alias", e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-xs text-gray-500 dark:text-gray-400">Dosage</label>
+                    <Input
+                      placeholder="500mg"
                       value={medicine.dosage}
                       onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
                     />
                   </div>
-                  <div className="col-span-3 space-y-1">
-                    <label className="text-xs text-gray-500">Frequency</label>
-                    <Input 
-                      placeholder="1-0-1" 
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-xs text-gray-500 dark:text-gray-400">Frequency</label>
+                    <Input
+                      placeholder="1-0-1"
                       value={medicine.frequency}
                       onChange={(e) => updateMedicine(index, "frequency", e.target.value)}
                     />
                   </div>
                   <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500">Duration</label>
-                    <Input 
-                      placeholder="5 days" 
+                    <label className="text-xs text-gray-500 dark:text-gray-400">Duration</label>
+                    <Input
+                      placeholder="5 days"
                       value={medicine.duration}
                       onChange={(e) => updateMedicine(index, "duration", e.target.value)}
                     />
                   </div>
                   <div className="col-span-1">
-                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeMedicine(index)}>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => removeMedicine(index)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -305,8 +313,8 @@ export const PrescriptionForm = () => {
             <div className="space-y-2 pt-2">
               <label className="text-sm font-medium">Advice</label>
               <div className="flex gap-2">
-                <Input 
-                  placeholder="e.g. Drink plenty of water" 
+                <Input
+                  placeholder="e.g. Drink plenty of water"
                   value={advice}
                   onChange={(e) => setAdvice(e.target.value)}
                 />
@@ -317,7 +325,7 @@ export const PrescriptionForm = () => {
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Severity</label>
-                <select 
+                <select
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
@@ -329,7 +337,7 @@ export const PrescriptionForm = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Visit Type</label>
-                <select 
+                <select
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={visitType}
                   onChange={(e) => setVisitType(e.target.value)}
@@ -347,7 +355,7 @@ export const PrescriptionForm = () => {
                   <Sparkles className="h-4 w-4 mr-2" /> Generate
                 </Button>
               </div>
-              
+
               {followUpSuggestion && (
                 <div className="bg-blue-50 p-4 rounded-lg space-y-3 border border-blue-100">
                   <div className="flex justify-between items-start">
@@ -365,7 +373,7 @@ export const PrescriptionForm = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white p-3 rounded border border-blue-100 text-xs text-gray-600">
                     <p className="font-medium mb-1 text-gray-900">WhatsApp Message Preview:</p>
                     {followUpSuggestion.reminder_message}
@@ -375,7 +383,7 @@ export const PrescriptionForm = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <div className="flex gap-4">
           <Button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSave} disabled={loading}>
             <Save className="mr-2 h-4 w-4" /> {loading ? "Saving..." : "Save Prescription"}
@@ -388,7 +396,7 @@ export const PrescriptionForm = () => {
 
       {/* Preview Section */}
       <div className="hidden lg:block sticky top-6">
-        <PrescriptionPreview 
+        <PrescriptionPreview
           ref={prescriptionRef}
           patient={patient}
           diagnosis={diagnosis}

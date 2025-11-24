@@ -54,8 +54,8 @@ export const TopHeader = () => {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${item.active
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                 >
                   <item.icon className={`w-5 h-5 ${item.active ? "text-blue-600" : "text-gray-400"}`} />
@@ -80,7 +80,7 @@ export const TopHeader = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search patients, prescriptions..."
-            className="pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+            className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 transition-colors"
           />
         </div>
       </div>
