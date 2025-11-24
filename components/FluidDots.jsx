@@ -1,16 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 export default function FluidDots() {
     const canvasRef = useRef(null);
+    const { theme, systemTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
+
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         let animationFrameId;
         let mouseX = -1000;
         let mouseY = -1000;
+
+        const currentTheme = theme === 'system' ? systemTheme : theme;
+        const isDark = currentTheme === 'dark';
 
         const handleResize = () => {
             canvas.width = window.innerWidth;
@@ -55,14 +67,8 @@ export default function FluidDots() {
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Re-calculate grid if window size changes significantly (optional optimization)
-            // For now, we just draw based on existing dots, but ideally we'd regenerate on resize.
-            // To keep it simple and robust, let's just loop existing dots. 
-            // Note: A full resize handling for dots array would be better, but let's stick to a simple version first.
-            // Actually, let's regenerate dots on resize to be correct.
-
             // Drawing
-            ctx.fillStyle = "rgba(66, 133, 244, 0.5)"; // Google Blue-ish with low opacity
+            ctx.fillStyle = isDark ? "rgba(96, 165, 250, 0.3)" : "rgba(66, 133, 244, 0.5)"; // Lighter blue for dark mode
 
             dots.forEach((dot) => {
                 const dx = mouseX - dot.x;
@@ -99,7 +105,6 @@ export default function FluidDots() {
                 dot.y += returnY;
 
                 // Draw dot
-                // Scale dot based on distance to mouse for extra effect
                 let size = 1.5;
                 if (distance < 200) {
                     size = 1.5 + (200 - distance) / 100;
@@ -132,7 +137,7 @@ export default function FluidDots() {
             }
         };
 
-        window.removeEventListener("resize", handleResize); // Remove old listener to avoid dupes if we re-add
+        window.removeEventListener("resize", handleResize);
         window.addEventListener("resize", () => {
             handleResize();
             regenerateDots();
@@ -147,12 +152,14 @@ export default function FluidDots() {
             window.removeEventListener("mouseleave", handleMouseLeave);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [theme, systemTheme, mounted]);
+
+    if (!mounted) return null;
 
     return (
         <canvas
             ref={canvasRef}
-            className="fixed inset-0 z-0 pointer-events-none bg-white"
+            className="fixed inset-0 z-0 pointer-events-none bg-white dark:bg-gray-950 transition-colors duration-500"
         />
     );
 }
