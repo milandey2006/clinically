@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import Link from "next/link";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { SkiperThemeToggle } from "@/components/SkiperThemeToggle";
 
 export const TopHeader = () => {
   const { user } = useUser();
-  
+
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", active: true },
     { icon: Users, label: "Patients", href: "/dashboard/patients", active: false },
@@ -53,25 +53,24 @@ export const TopHeader = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    item.active
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${item.active
                       ? "bg-blue-50 text-blue-600"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
+                    }`}
                 >
                   <item.icon className={`w-5 h-5 ${item.active ? "text-blue-600" : "text-gray-400"}`} />
                   {item.label}
                 </Link>
               ))}
             </nav>
-             <div className="p-4 border-t border-gray-50 space-y-4 mt-auto">
-                <Link href="/dashboard/create-prescription" className="block w-full">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Prescription
-                  </Button>
-                </Link>
-             </div>
+            <div className="p-4 border-t border-gray-50 space-y-4 mt-auto">
+              <Link href="/dashboard/create-prescription" className="block w-full">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Prescription
+                </Button>
+              </Link>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
@@ -79,8 +78,8 @@ export const TopHeader = () => {
       <div className="flex-1 max-w-xl ml-4 lg:ml-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input 
-            placeholder="Search patients, prescriptions..." 
+          <Input
+            placeholder="Search patients, prescriptions..."
             className="pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
           />
         </div>
@@ -90,14 +89,14 @@ export const TopHeader = () => {
         <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
           <HelpCircle className="h-5 w-5" />
         </Button>
-        <ThemeToggle />
+        <SkiperThemeToggle />
         <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700 relative">
           <Bell className="h-5 w-5" />
           <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
         </Button>
         <div className="h-8 w-px bg-gray-200 mx-2 hidden sm:block"></div>
         <div className="flex items-center gap-3">
-           <div className="text-right hidden sm:block">
+          <div className="text-right hidden sm:block">
             <p className="text-sm font-medium text-gray-900">{user?.fullName || "Doctor"}</p>
             <p className="text-xs text-gray-500">General Practitioner</p>
           </div>
