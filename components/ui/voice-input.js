@@ -14,39 +14,27 @@ export const VoiceInput = ({ onTranscript, className }) => {
       setSupported(true);
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognitionInstance = new SpeechRecognition();
-      
+
       // Enable continuous listening and interim results for better UX
       recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
+      recognitionInstance.interimResults = false;
       recognitionInstance.lang = "en-US";
       recognitionInstance.maxAlternatives = 1;
 
       let finalTranscript = "";
 
       recognitionInstance.onresult = (event) => {
-        let interimTranscript = "";
-        
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript + " ";
-          } else {
-            interimTranscript += transcript;
+            const transcript = event.results[i][0].transcript;
+            onTranscript(transcript.trim());
           }
-        }
-        
-        // Send the transcript (interim or final)
-        if (finalTranscript) {
-          onTranscript(finalTranscript.trim());
-          finalTranscript = "";
-        } else if (interimTranscript) {
-          onTranscript(interimTranscript);
         }
       };
 
       recognitionInstance.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
-        
+
         // Handle specific errors
         if (event.error === "no-speech") {
           console.log("No speech detected, keep listening...");

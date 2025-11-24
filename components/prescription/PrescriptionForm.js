@@ -241,7 +241,7 @@ export const PrescriptionForm = () => {
                   value={diagnosis}
                   onChange={(e) => setDiagnosis(e.target.value)}
                 />
-                <VoiceInput onTranscript={setDiagnosis} />
+                <VoiceInput onTranscript={(text) => setDiagnosis(prev => prev ? `${prev} ${text}` : text)} />
               </div>
             </div>
 
@@ -279,7 +279,7 @@ export const PrescriptionForm = () => {
                           />
                           <VoiceInput
                             className="h-9 w-9 shrink-0"
-                            onTranscript={(text) => updateMedicine(index, "name", text)}
+                            onTranscript={(text) => updateMedicine(index, "name", medicine.name ? `${medicine.name} ${text}` : text)}
                           />
                         </div>
 
@@ -355,7 +355,7 @@ export const PrescriptionForm = () => {
                   value={advice}
                   onChange={(e) => setAdvice(e.target.value)}
                 />
-                <VoiceInput onTranscript={setAdvice} />
+                <VoiceInput onTranscript={(text) => setAdvice(prev => prev ? `${prev} ${text}` : text)} />
               </div>
             </div>
 
