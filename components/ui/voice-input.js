@@ -1,18 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, AlertCircle } from "lucide-react";
 
 export const VoiceInput = ({ onTranscript, className }) => {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState(null);
   const [supported, setSupported] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Use a ref for onTranscript to avoid re-initializing recognition when the callback changes
+  const onTranscriptRef = useRef(onTranscript);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
-      setSupported(true);
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        setSupported(false);
+        setErrorMessage("Browser not supported");
+        return;
+      }
+
+      setSupported(true);
       const recognitionInstance = new SpeechRecognition();
 
       // Enable continuous listening and interim results for better UX
@@ -21,13 +36,13 @@ export const VoiceInput = ({ onTranscript, className }) => {
       recognitionInstance.lang = "en-US";
       recognitionInstance.maxAlternatives = 1;
 
-      let finalTranscript = "";
-
       recognitionInstance.onresult = (event) => {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
             const transcript = event.results[i][0].transcript;
-            onTranscript(transcript.trim());
+            if (onTranscriptRef.current) {
+              onTranscriptRef.current(transcript.trim());
+            }
           }
         }
       };
@@ -38,7 +53,6 @@ export const VoiceInput = ({ onTranscript, className }) => {
         // Handle specific errors
         if (event.error === "no-speech") {
           console.log("No speech detected, keep listening...");
-          // Don't stop on no-speech, let it continue
         } else if (event.error === "not-allowed") {
           alert("Microphone permission denied. Please allow microphone access in your browser settings.");
           setIsListening(false);
@@ -50,16 +64,11 @@ export const VoiceInput = ({ onTranscript, className }) => {
 
       recognitionInstance.onend = () => {
         // If we're supposed to be listening, restart
-        if (isListening) {
-          try {
-            recognitionInstance.start();
-          } catch (e) {
-            console.log("Recognition ended");
-            setIsListening(false);
-          }
-        } else {
-          setIsListening(false);
-        }
+        // Note: We check the ref/state here, but for simplicity we'll rely on the toggle
+        // to manage the 'intent' to listen. 
+        // If it stops unexpectedly, we might want to restart, but infinite loops are risky.
+        // For now, let's just stop the UI state if it ends.
+        setIsListening(false);
       };
 
       recognitionInstance.onstart = () => {
@@ -69,10 +78,10 @@ export const VoiceInput = ({ onTranscript, className }) => {
 
       setRecognition(recognitionInstance);
     }
-  }, [onTranscript]);
+  }, []); // Empty dependency array - initialize once
 
   const toggleListening = () => {
-    if (!recognition) {
+    if (!supported || !recognition) {
       alert("Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.");
       return;
     }
@@ -100,7 +109,21 @@ export const VoiceInput = ({ onTranscript, className }) => {
     }
   };
 
-  if (!supported) return null;
+  // Render even if not supported, but show visual indication
+  if (!supported) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={`${className} text-gray-300 cursor-not-allowed opacity-50`}
+        title="Voice input not supported in this browser"
+        disabled
+      >
+        <MicOff className="h-4 w-4" />
+      </Button>
+    );
+  }
 
   return (
     <Button
@@ -108,7 +131,7 @@ export const VoiceInput = ({ onTranscript, className }) => {
       variant="ghost"
       size="icon"
       onClick={toggleListening}
-      className={`${className} ${isListening ? "text-red-500 animate-pulse" : "text-gray-500"}`}
+      className={`${className} ${isListening ? "text-red-500 animate-pulse" : "text-gray-500 hover:text-blue-600"}`}
       title={isListening ? "Click to stop listening" : "Click to start voice input"}
     >
       {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
