@@ -254,57 +254,94 @@ export const PrescriptionForm = () => {
               </div>
 
               {medicines.map((medicine, index) => (
-                <div key={index} className="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-                  <div className="col-span-3 space-y-1">
-                    <label className="text-xs text-gray-500 dark:text-gray-400">Name</label>
-                    <div className="flex gap-1">
-                      <Input
-                        placeholder="Medicine Name"
-                        value={medicine.name}
-                        onChange={(e) => updateMedicine(index, "name", e.target.value)}
-                      />
-                      <VoiceInput
-                        className="h-8 w-8"
-                        onTranscript={(text) => updateMedicine(index, "name", text)}
-                      />
+                <div key={index} className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-100 dark:border-gray-700 space-y-3">
+                  {/* Row 1: Name and Alias Toggle */}
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-gray-500 dark:text-gray-400">Name</label>
+                        {!medicine.showAlias && !medicine.alias && (
+                          <button
+                            onClick={() => updateMedicine(index, "showAlias", true)}
+                            className="text-[10px] text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            + Add Alias
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1 flex gap-1">
+                          <Input
+                            placeholder="Medicine Name"
+                            value={medicine.name}
+                            onChange={(e) => updateMedicine(index, "name", e.target.value)}
+                            className="bg-white dark:bg-gray-900"
+                          />
+                          <VoiceInput
+                            className="h-9 w-9 shrink-0"
+                            onTranscript={(text) => updateMedicine(index, "name", text)}
+                          />
+                        </div>
+
+                        {(medicine.showAlias || medicine.alias) && (
+                          <div className="w-1/3 animate-in fade-in slide-in-from-right-4 duration-200">
+                            <Input
+                              placeholder="Alias (e.g. Fever Pill)"
+                              value={medicine.alias}
+                              onChange={(e) => updateMedicine(index, "alias", e.target.value)}
+                              className="bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-800 focus:border-blue-400"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500 dark:text-gray-400">Alias (Optional)</label>
-                    <Input
-                      placeholder="e.g. Fever Pill"
-                      value={medicine.alias}
-                      onChange={(e) => updateMedicine(index, "alias", e.target.value)}
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500 dark:text-gray-400">Dosage</label>
-                    <Input
-                      placeholder="500mg"
-                      value={medicine.dosage}
-                      onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500 dark:text-gray-400">Frequency</label>
-                    <Input
-                      placeholder="1-0-1"
-                      value={medicine.frequency}
-                      onChange={(e) => updateMedicine(index, "frequency", e.target.value)}
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-xs text-gray-500 dark:text-gray-400">Duration</label>
-                    <Input
-                      placeholder="5 days"
-                      value={medicine.duration}
-                      onChange={(e) => updateMedicine(index, "duration", e.target.value)}
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => removeMedicine(index)}>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="mt-6 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                      onClick={() => removeMedicine(index)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                  </div>
+
+                  {/* Row 2: Dosage, Frequency, Duration */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Dosage</label>
+                      <Input
+                        placeholder="500mg"
+                        value={medicine.dosage}
+                        onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
+                        className="bg-white dark:bg-gray-900"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Frequency</label>
+                      <Input
+                        placeholder="1-0-1"
+                        value={medicine.frequency}
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          // Auto-format 3 digits to X-X-X
+                          if (val.length === 3 && /^\d{3}$/.test(val)) {
+                            val = `${val[0]}-${val[1]}-${val[2]}`;
+                          }
+                          updateMedicine(index, "frequency", val);
+                        }}
+                        className="bg-white dark:bg-gray-900"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Duration</label>
+                      <Input
+                        placeholder="5 days"
+                        value={medicine.duration}
+                        onChange={(e) => updateMedicine(index, "duration", e.target.value)}
+                        className="bg-white dark:bg-gray-900"
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
