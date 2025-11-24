@@ -189,12 +189,18 @@ export const PrescriptionForm = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Full Name</label>
-                <Input
-                  placeholder="John Doe"
-                  value={patient.name}
-                  onChange={(e) => setPatient({ ...patient, name: e.target.value })}
-                  disabled={!!patient.id} // Disable manual edit if selected from DB
-                />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="John Doe"
+                    value={patient.name}
+                    onChange={(e) => setPatient({ ...patient, name: e.target.value })}
+                    disabled={!!patient.id} // Disable manual edit if selected from DB
+                  />
+                  <VoiceInput
+                    className="h-9 w-9 shrink-0"
+                    onTranscript={(text) => setPatient(prev => ({ ...prev, name: prev.name ? `${prev.name} ${text}` : text }))}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
@@ -291,6 +297,12 @@ export const PrescriptionForm = () => {
                               onChange={(e) => updateMedicine(index, "alias", e.target.value)}
                               className="bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-800 focus:border-blue-400"
                             />
+                            <div className="absolute right-1 top-1">
+                              <VoiceInput
+                                className="h-7 w-7 text-gray-400 hover:text-blue-600"
+                                onTranscript={(text) => updateMedicine(index, "alias", medicine.alias ? `${medicine.alias} ${text}` : text)}
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
@@ -310,12 +322,18 @@ export const PrescriptionForm = () => {
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400">Dosage</label>
-                      <Input
-                        placeholder="500mg"
-                        value={medicine.dosage}
-                        onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
-                        className="bg-white dark:bg-gray-900"
-                      />
+                      <div className="flex gap-1">
+                        <Input
+                          placeholder="500mg"
+                          value={medicine.dosage}
+                          onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
+                          className="bg-white dark:bg-gray-900"
+                        />
+                        <VoiceInput
+                          className="h-9 w-9 shrink-0"
+                          onTranscript={(text) => updateMedicine(index, "dosage", medicine.dosage ? `${medicine.dosage} ${text}` : text)}
+                        />
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400">Frequency</label>
@@ -335,12 +353,18 @@ export const PrescriptionForm = () => {
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-gray-500 dark:text-gray-400">Duration</label>
-                      <Input
-                        placeholder="5 days"
-                        value={medicine.duration}
-                        onChange={(e) => updateMedicine(index, "duration", e.target.value)}
-                        className="bg-white dark:bg-gray-900"
-                      />
+                      <div className="flex gap-1">
+                        <Input
+                          placeholder="5 days"
+                          value={medicine.duration}
+                          onChange={(e) => updateMedicine(index, "duration", e.target.value)}
+                          className="bg-white dark:bg-gray-900"
+                        />
+                        <VoiceInput
+                          className="h-9 w-9 shrink-0"
+                          onTranscript={(text) => updateMedicine(index, "duration", medicine.duration ? `${medicine.duration} ${text}` : text)}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
