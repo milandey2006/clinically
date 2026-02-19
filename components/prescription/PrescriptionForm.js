@@ -28,7 +28,7 @@ import { PrescriptionPreview } from "@/components/prescription/PrescriptionPrevi
 export const PrescriptionForm = () => {
   const [patient, setPatient] = useState({ id: null, name: "", age: "", gender: "", date: new Date().toISOString().split('T')[0] });
   const [diagnosis, setDiagnosis] = useState("");
-  const [medicines, setMedicines] = useState([{ name: "", dosage: "", frequency: "", duration: "" }]);
+  const [medicines, setMedicines] = useState([{ name: "", dosage: "", frequency: "", duration: "", isExternal: false }]);
   const [advice, setAdvice] = useState("");
   const [severity, setSeverity] = useState("moderate");
   const [visitType, setVisitType] = useState("first");
@@ -69,7 +69,7 @@ export const PrescriptionForm = () => {
   };
 
   const addMedicine = () => {
-    setMedicines([...medicines, { name: "", dosage: "", frequency: "", duration: "" }]);
+    setMedicines([...medicines, { name: "", dosage: "", frequency: "", duration: "", isExternal: false }]);
   };
 
   const removeMedicine = (index) => {
@@ -245,7 +245,7 @@ export const PrescriptionForm = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
+              <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">Medicines</label>
                 <Button variant="outline" size="sm" onClick={addMedicine}>
@@ -255,7 +255,7 @@ export const PrescriptionForm = () => {
               
               {medicines.map((medicine, index) => (
                 <div key={index} className="grid grid-cols-12 gap-2 items-end bg-gray-50 p-3 rounded-lg">
-                  <div className="col-span-4 space-y-1">
+                  <div className="col-span-3 space-y-1">
                     <label className="text-xs text-gray-500">Name</label>
                     <div className="flex gap-1">
                       <Input 
@@ -277,7 +277,7 @@ export const PrescriptionForm = () => {
                       onChange={(e) => updateMedicine(index, "dosage", e.target.value)}
                     />
                   </div>
-                  <div className="col-span-3 space-y-1">
+                  <div className="col-span-2 space-y-1">
                     <label className="text-xs text-gray-500">Frequency</label>
                     <Input 
                       placeholder="1-0-1" 
@@ -292,6 +292,17 @@ export const PrescriptionForm = () => {
                       value={medicine.duration}
                       onChange={(e) => updateMedicine(index, "duration", e.target.value)}
                     />
+                  </div>
+                  <div className="col-span-2 flex items-center justify-center pb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={medicine.isExternal || false}
+                        onChange={(e) => updateMedicine(index, "isExternal", e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-xs text-gray-600">External</span>
+                    </label>
                   </div>
                   <div className="col-span-1">
                     <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeMedicine(index)}>

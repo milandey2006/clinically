@@ -10,6 +10,7 @@ import { getDoctorProfile } from "@/app/actions";
 
 export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, advice, date, showDownloadButton = false, patientContact }, ref) => {
   const prescriptionRef = useRef(null);
+  const [viewMode, setViewMode] = useState('office'); // 'office' | 'patient'
   const [doctorProfile, setDoctorProfile] = useState(null);
 
   useEffect(() => {
@@ -24,47 +25,36 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
     download: handleDownload
   }));
 
-  const generatePDF = async () => {
+  // helper functions
+  const addWatermark = (element, text) => {
+    const watermark = document.createElement('div');
+    watermark.style.position = 'absolute';
+    watermark.style.top = '10px';
+    watermark.style.right = '10px';
+    watermark.style.padding = '4px 8px';
+    watermark.style.backgroundColor = '#f3f4f6';
+    watermark.style.border = '1px solid #d1d5db';
+    watermark.style.borderRadius = '4px';
+    watermark.style.fontSize = '12px';
+    watermark.style.fontWeight = '600';
+    watermark.style.color = '#374151';
+    watermark.innerText = text;
+    
+    // Ensure relative positioning on parent for absolute child
+    if (element.style.position !== 'absolute' && element.style.position !== 'relative') {
+          element.style.position = 'relative';
+    }
+    element.appendChild(watermark);
+  };
+  
+  const generatePDF = async (mode = 'combined') => { // mode: 'combined' | 'patient'
     if (!prescriptionRef.current) {
       console.error("Prescription ref is missing");
       return null;
     }
 
     try {
-      console.log("Starting PDF generation...");
-      
-      // Clone the element to ensure it's visible for capture
-      const originalElement = prescriptionRef.current;
-      const clone = originalElement.cloneNode(true);
-      
-      // Style the clone to be visible but off-screen
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.width = '800px';
-      clone.style.display = 'block';
-      clone.style.zIndex = '-1';
-      
-      document.body.appendChild(clone);
-      
-      // Wait a bit for the clone to render
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        windowWidth: 800,
-      });
-      
-      document.body.removeChild(clone);
-      
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-      
-      if (imgData.length < 100) {
-        throw new Error("Image data is too short, likely empty or tainted canvas.");
-      }
+      console.log(`Starting PDF generation (Mode: ${mode})...`);
       
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -72,10 +62,89 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         format: "a4"
       });
 
+      const captureOptions = {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: 800,
+      };
+
+      const originalElement = prescriptionRef.current;
       const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Helper to capture element
+      const captureElement = async (element) => {
+        document.body.appendChild(element);
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for render
+        const canvas = await html2canvas(element, captureOptions);
+        document.body.removeChild(element);
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        return { imgData, imgHeight };
+      };
+
+      const hasExternalMedicines = medicines.some(m => m.isExternal);
+
+      // --- GENERATE DOCTOR'S COPY (ALL MEDICINES) ---
+      if (mode === 'combined') {
+        const cloneDoc = originalElement.cloneNode(true);
+        // Setup styles
+        cloneDoc.style.position = 'absolute';
+        cloneDoc.style.left = '-9999px';
+        cloneDoc.style.top = '0';
+        cloneDoc.style.width = '800px';
+        cloneDoc.style.display = 'block';
+        cloneDoc.style.zIndex = '-1';
+        
+        // Ensure ALL rows are visible for Office Copy
+        const tbody = cloneDoc.querySelector('tbody');
+        if (tbody) {
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          rows.forEach(row => {
+            row.style.display = 'table-row'; // Force show all
+          });
+        }
+        
+        addWatermark(cloneDoc, "OFFICE COPY (ALL MEDICINES)");
+
+        const { imgData: imgDataDoc, imgHeight: imgHeightDoc } = await captureElement(cloneDoc);
+        pdf.addImage(imgDataDoc, "JPEG", 0, 0, imgWidth, imgHeightDoc);
+      }
+
+      // --- GENERATE PATIENT'S COPY (EXTERNAL ONLY) ---
+      if (mode === 'patient' || (mode === 'combined' && hasExternalMedicines)) {
+        if (mode === 'combined') pdf.addPage();
+
+        const clonePatient = originalElement.cloneNode(true);
+        // Setup styles
+        clonePatient.style.position = 'absolute';
+        clonePatient.style.left = '-9999px';
+        clonePatient.style.top = '0';
+        clonePatient.style.width = '800px';
+        clonePatient.style.display = 'block';
+        clonePatient.style.zIndex = '-1';
+        
+        addWatermark(clonePatient, "PATIENT COPY (EXTERNAL ONLY)");
+
+        // Filter rows
+        const tbody = clonePatient.querySelector('tbody');
+        if (tbody) {
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          rows.forEach(row => {
+            const isExternal = row.getAttribute('data-external') === 'true';
+            if (!isExternal) {
+              row.style.display = 'none';
+            } else {
+              row.style.display = 'table-row'; // Make sure external ones are shown
+            }
+          });
+        }
+
+        const { imgData: imgDataPatient, imgHeight: imgHeightPatient } = await captureElement(clonePatient);
+        pdf.addImage(imgDataPatient, "JPEG", 0, 0, imgWidth, imgHeightPatient);
+      }
       
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
       return pdf;
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -84,7 +153,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
   };
 
   const handleDownload = async () => {
-    const pdf = await generatePDF();
+    const pdf = await generatePDF('combined');
     if (pdf) {
       pdf.save(`Prescription_${patient.name || "Patient"}.pdf`);
       console.log("PDF saved");
@@ -100,15 +169,15 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
     }
 
     try {
-      // 1. Generate PDF Blob
-      const pdf = await generatePDF();
+      // Generate ONLY Patient Copy (External Meds)
+      const pdf = await generatePDF('patient');
       if (!pdf) {
         alert("Failed to generate PDF for sharing.");
         return;
       }
       
       const pdfBlob = pdf.output('blob');
-      // Sanitize filename: replace spaces with underscores to ensure valid URLs
+      // Sanitize filename
       const safeName = (patient.name || "Patient").replace(/[^a-zA-Z0-9]/g, '_');
       const fileName = `Prescription_${safeName}_${Date.now()}.pdf`;
 
@@ -167,22 +236,48 @@ ${doctorProfile?.name || "Doctor"}`;
   return (
     <div className="space-y-4">
       <Card className="border-none shadow-lg">
-        <CardHeader className="bg-gray-50 border-b border-gray-100 rounded-t-xl flex flex-row items-center justify-between">
-          <CardTitle className="text-gray-700 flex items-center gap-2">
-            <FileText className="h-5 w-5" /> Prescription Preview
-          </CardTitle>
-          {showDownloadButton && (
-            <div className="flex gap-2">
-              {patientContact && (
-                <Button id="whatsapp-btn" variant="outline" size="sm" onClick={handleSendWhatsApp} className="text-green-600 border-green-200 hover:bg-green-50">
-                  <Send className="h-4 w-4 mr-2" /> Send WhatsApp
+        <CardHeader className="bg-gray-50 border-b border-gray-100 rounded-t-xl flex flex-col gap-4">
+          <div className="flex flex-row items-center justify-between w-full">
+            <CardTitle className="text-gray-700 flex items-center gap-2">
+              <FileText className="h-5 w-5" /> Prescription Preview
+            </CardTitle>
+            {showDownloadButton && (
+              <div className="flex gap-2">
+                {patientContact && (
+                  <Button id="whatsapp-btn" variant="outline" size="sm" onClick={handleSendWhatsApp} className="text-green-600 border-green-200 hover:bg-green-50">
+                    <Send className="h-4 w-4 mr-2" /> Send WhatsApp
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleDownload} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                  <Download className="h-4 w-4 mr-2" /> Download PDF
                 </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={handleDownload} className="text-blue-600 border-blue-200 hover:bg-blue-50">
-                <Download className="h-4 w-4 mr-2" /> Download PDF
-              </Button>
-            </div>
-          )}
+              </div>
+            )}
+          </div>
+          
+          {/* View Toggle */}
+          <div className="flex p-1 bg-gray-200 rounded-lg self-start">
+            <button
+              onClick={() => setViewMode('office')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                viewMode === 'office' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Office Copy
+            </button>
+            <button
+              onClick={() => setViewMode('patient')}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                viewMode === 'patient' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Patient Copy
+            </button>
+          </div>
         </CardHeader>
         <CardContent className="p-8 bg-white min-h-[600px]">
           <div 
@@ -245,8 +340,22 @@ ${doctorProfile?.name || "Doctor"}`;
                 </thead>
                 <tbody>
                   {medicines.map((med, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={{ padding: '12px 8px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>{med.name || "—"}</td>
+                    <tr 
+                      key={i} 
+                      style={{ 
+                        borderBottom: '1px solid #f3f4f6', 
+                        display: (viewMode === 'patient' && !med.isExternal) ? 'none' : 'table-row'
+                      }} 
+                      data-external={med.isExternal}
+                    >
+                      <td style={{ padding: '12px 8px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>
+                        {med.name || "—"}
+                        {viewMode === 'office' && med.isExternal && (
+                          <span style={{ marginLeft: '4px', fontSize: '10px', color: '#2563eb', backgroundColor: '#eff6ff', padding: '2px 4px', borderRadius: '4px' }}>
+                            External
+                          </span>
+                        )}
+                      </td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.dosage || "—"}</td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.frequency || "—"}</td>
                       <td style={{ padding: '12px 8px', fontSize: '14px', color: '#374151' }}>{med.duration || "—"}</td>
