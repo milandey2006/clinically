@@ -97,8 +97,8 @@ export const TopHeader = () => {
         <div className="h-8 w-px bg-gray-200 mx-2 hidden sm:block"></div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">{user?.fullName || "Doctor"}</p>
-            <p className="text-xs text-gray-500">General Practitioner</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.fullName || "Doctor"}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">General Practitioner</p>
           </div>
           <UserButton afterSignOutUrl="/" />
         </div>

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { ArrowRight, Mic, Share2, Sparkles, Zap, Menu, X } from "lucide-react";
+import { ArrowRight, Mic, Share2, Sparkles, Zap, Menu, X, LayoutDashboard } from "lucide-react";
 import { useTheme } from "next-themes";
 import FluidDots from "@/components/FluidDots";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ export default function LandingPage() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { isSignedIn } = useAuth();
 
     useEffect(() => {
         setMounted(true);
@@ -66,16 +67,27 @@ export default function LandingPage() {
                         <SkiperThemeToggle />
                     )}
 
-                    <SignInButton mode="modal">
-                        <button className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                            Sign In
-                        </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal">
-                        <button className="px-5 py-2.5 text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg shadow-gray-200 dark:shadow-gray-900/20">
-                            Get Started
-                        </button>
-                    </SignUpButton>
+                    {isSignedIn ? (
+                        <Link href="/dashboard/appointments">
+                            <button className="px-5 py-2.5 text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg shadow-gray-200 dark:shadow-gray-900/20 flex items-center gap-2">
+                                <LayoutDashboard className="w-4 h-4" />
+                                Dashboard
+                            </button>
+                        </Link>
+                    ) : (
+                        <>
+                            <SignInButton mode="modal">
+                                <button className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                    Sign In
+                                </button>
+                            </SignInButton>
+                            <SignUpButton mode="modal">
+                                <button className="px-5 py-2.5 text-sm font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-lg shadow-gray-200 dark:shadow-gray-900/20">
+                                    Get Started
+                                </button>
+                            </SignUpButton>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -110,16 +122,27 @@ export default function LandingPage() {
                             </div>
                             <div className="h-px w-full bg-gray-100 dark:bg-gray-800 my-2"></div>
                             <div className="flex flex-col gap-4">
-                                <SignInButton mode="modal">
-                                    <button className="w-full py-3 text-center text-gray-600 dark:text-gray-300 font-medium border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                        Sign In
-                                    </button>
-                                </SignInButton>
-                                <SignUpButton mode="modal">
-                                    <button className="w-full py-3 text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-lg shadow-gray-200 dark:shadow-gray-900/20">
-                                        Get Started
-                                    </button>
-                                </SignUpButton>
+                                {isSignedIn ? (
+                                    <Link href="/dashboard/appointments" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <button className="w-full py-3 text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-lg shadow-gray-200 dark:shadow-gray-900/20 flex items-center justify-center gap-2">
+                                            <LayoutDashboard className="w-5 h-5" />
+                                            Go to Dashboard
+                                        </button>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <SignInButton mode="modal">
+                                            <button className="w-full py-3 text-center text-gray-600 dark:text-gray-300 font-medium border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                                Sign In
+                                            </button>
+                                        </SignInButton>
+                                        <SignUpButton mode="modal">
+                                            <button className="w-full py-3 text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-xl hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-lg shadow-gray-200 dark:shadow-gray-900/20">
+                                                Get Started
+                                            </button>
+                                        </SignUpButton>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -168,12 +191,22 @@ export default function LandingPage() {
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                     >
-                        <SignUpButton mode="modal">
-                            <button className="group px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full text-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 hover:shadow-xl hover:shadow-gray-200 dark:hover:shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
-                                Start Prescribing Free
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </SignUpButton>
+                        {isSignedIn ? (
+                            <Link href="/dashboard/appointments">
+                                <button className="group px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full text-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 hover:shadow-xl hover:shadow-gray-200 dark:hover:shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                                    <LayoutDashboard className="w-5 h-5" />
+                                    Go to Dashboard
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </Link>
+                        ) : (
+                            <SignUpButton mode="modal">
+                                <button className="group px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full text-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-100 hover:shadow-xl hover:shadow-gray-200 dark:hover:shadow-blue-900/20 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                                    Start Prescribing Free
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </SignUpButton>
+                        )}
                         <button className="px-8 py-4 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-700 transition-all flex items-center gap-2 shadow-sm">
                             <Zap className="w-5 h-5 text-gray-400" />
                             Watch Demo

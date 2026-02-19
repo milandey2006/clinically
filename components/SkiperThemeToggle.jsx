@@ -110,7 +110,7 @@ export const SkiperThemeToggle = ({
             type="button"
             className={cn(
                 "size-10 cursor-pointer rounded-full transition-all duration-300 active:scale-95 flex items-center justify-center",
-                isDark ? "bg-black text-white" : "bg-white text-black",
+                isDark ? "dark dark:text-muted-foreground" : "bg-white text-muted-foreground",
                 className,
             )}
             onClick={toggleTheme}

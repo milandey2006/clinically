@@ -39,14 +39,14 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
     watermark.style.fontWeight = '600';
     watermark.style.color = '#374151';
     watermark.innerText = text;
-    
+
     // Ensure relative positioning on parent for absolute child
     if (element.style.position !== 'absolute' && element.style.position !== 'relative') {
-          element.style.position = 'relative';
+      element.style.position = 'relative';
     }
     element.appendChild(watermark);
   };
-  
+
   const generatePDF = async (mode = 'combined') => { // mode: 'combined' | 'patient'
     if (!prescriptionRef.current) {
       console.error("Prescription ref is missing");
@@ -55,7 +55,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
 
     try {
       console.log(`Starting PDF generation (Mode: ${mode})...`);
-      
+
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -96,7 +96,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         cloneDoc.style.width = '800px';
         cloneDoc.style.display = 'block';
         cloneDoc.style.zIndex = '-1';
-        
+
         // Ensure ALL rows are visible for Office Copy
         const tbody = cloneDoc.querySelector('tbody');
         if (tbody) {
@@ -105,7 +105,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
             row.style.display = 'table-row'; // Force show all
           });
         }
-        
+
         addWatermark(cloneDoc, "OFFICE COPY (ALL MEDICINES)");
 
         const { imgData: imgDataDoc, imgHeight: imgHeightDoc } = await captureElement(cloneDoc);
@@ -124,7 +124,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         clonePatient.style.width = '800px';
         clonePatient.style.display = 'block';
         clonePatient.style.zIndex = '-1';
-        
+
         addWatermark(clonePatient, "PATIENT COPY (EXTERNAL ONLY)");
 
         // Filter rows
@@ -144,7 +144,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         const { imgData: imgDataPatient, imgHeight: imgHeightPatient } = await captureElement(clonePatient);
         pdf.addImage(imgDataPatient, "JPEG", 0, 0, imgWidth, imgHeightPatient);
       }
-      
+
       return pdf;
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -236,6 +236,21 @@ ${doctorProfile?.name || "Doctor"}`;
   return (
     <div className="space-y-4">
       <Card className="border-none shadow-lg">
+        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+          <div className="flex justify-between">
+            <span className="font-semibold">Patient Name: {patient.name}</span>
+            <span className="text-gray-600">Date: {date}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Age/Gender: {patient.age} Yrs / {patient.gender}</span>
+            <span className="font-semibold">Diagnosis: {diagnosis}</span>
+          </div>
+          {patientContact && (
+            <div className="text-xs text-gray-500">
+              Phone: {patientContact}
+            </div>
+          )}
+        </div>
         <CardHeader className="bg-gray-50 border-b border-gray-100 rounded-t-xl flex flex-col gap-4">
           <div className="flex flex-row items-center justify-between w-full">
             <CardTitle className="text-gray-700 flex items-center gap-2">
@@ -254,26 +269,24 @@ ${doctorProfile?.name || "Doctor"}`;
               </div>
             )}
           </div>
-          
+
           {/* View Toggle */}
           <div className="flex p-1 bg-gray-200 rounded-lg self-start">
             <button
               onClick={() => setViewMode('office')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                viewMode === 'office' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'office'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Office Copy
             </button>
             <button
               onClick={() => setViewMode('patient')}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
-                viewMode === 'patient' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === 'patient'
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               Patient Copy
             </button>
@@ -340,12 +353,12 @@ ${doctorProfile?.name || "Doctor"}`;
                 </thead>
                 <tbody>
                   {medicines.map((med, i) => (
-                    <tr 
-                      key={i} 
-                      style={{ 
-                        borderBottom: '1px solid #f3f4f6', 
+                    <tr
+                      key={i}
+                      style={{
+                        borderBottom: '1px solid #f3f4f6',
                         display: (viewMode === 'patient' && !med.isExternal) ? 'none' : 'table-row'
-                      }} 
+                      }}
                       data-external={med.isExternal}
                     >
                       <td style={{ padding: '12px 8px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>
