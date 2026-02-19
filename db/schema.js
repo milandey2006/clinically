@@ -7,6 +7,7 @@ export const patients = pgTable("patients", {
   age: integer("age"),
   gender: varchar("gender", { length: 20 }),
   contact: varchar("contact", { length: 20 }),
+  imageUrl: text("image_url"), // Cloudinary URL
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

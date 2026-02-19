@@ -22,12 +22,14 @@ export async function addPatient(formData) {
     const age = formData.get("age") ? parseInt(formData.get("age")) : null;
     const gender = formData.get("gender");
     const contact = formData.get("contact");
+    const imageUrl = formData.get("imageUrl");
 
     await db.insert(patients).values({
       name,
       age,
       gender,
       contact,
+      imageUrl,
       doctorId,
     });
     
@@ -61,9 +63,13 @@ export async function updatePatient(id, formData) {
     const age = formData.get("age") ? parseInt(formData.get("age")) : null;
     const gender = formData.get("gender");
     const contact = formData.get("contact");
+    const imageUrl = formData.get("imageUrl");
+
+    const updateData = { name, age, gender, contact };
+    if (imageUrl) updateData.imageUrl = imageUrl; // Only update image if provided
 
     await db.update(patients)
-      .set({ name, age, gender, contact })
+      .set(updateData)
       .where(and(eq(patients.id, id), eq(patients.doctorId, doctorId)));
 
     revalidatePath("/dashboard/patients");
