@@ -175,7 +175,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
         alert("Failed to generate PDF for sharing.");
         return;
       }
-      
+
       const pdfBlob = pdf.output('blob');
       // Sanitize filename
       const safeName = (patient.name || "Patient").replace(/[^a-zA-Z0-9]/g, '_');
@@ -184,13 +184,13 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
       // 2. Upload to Cloudinary
       // Dynamically import to avoid server-side issues if any, though this is a client component
       const { uploadPDFToCloudinary } = await import("@/lib/cloudinary-upload");
-      
+
       // Show loading state (optional: could add a toast here)
       const uploadButton = document.getElementById('whatsapp-btn');
       if (uploadButton) uploadButton.innerText = "Uploading...";
 
       const uploadResult = await uploadPDFToCloudinary(pdfBlob, fileName);
-      
+
       if (uploadButton) uploadButton.innerText = "Send WhatsApp";
 
       if (!uploadResult.success) {
@@ -203,7 +203,7 @@ export const PrescriptionPreview = forwardRef(({ patient, diagnosis, medicines, 
       const cleanNumber = patientContact.replace(/\D/g, '');
       const fileUrl = uploadResult.url;
       console.log("Cloudinary URL:", fileUrl); // Debugging log
-      
+
       const message = `Hello ${patient.name || "Patient"},
 
 Your prescription from ${doctorProfile?.clinicName || "our clinic"} is ready.
@@ -218,13 +218,13 @@ ${fileUrl}
 
 Best regards,
 ${doctorProfile?.name || "Doctor"}`;
-      
+
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
-      
+
       // 4. Open WhatsApp
       window.open(whatsappUrl, '_blank');
-      
+
     } catch (error) {
       console.error("Error sending to WhatsApp:", error);
       alert("Failed to process request. Please try again.");
@@ -280,8 +280,8 @@ ${doctorProfile?.name || "Doctor"}`;
           </div>
         </CardHeader>
         <CardContent className="p-8 bg-white min-h-[600px]">
-          <div 
-            ref={prescriptionRef} 
+          <div
+            ref={prescriptionRef}
             className="w-full bg-white p-8"
             style={{ fontFamily: 'Inter, sans-serif' }}
           >
